@@ -26,7 +26,7 @@ class EmbeddingsService:
             inputs = request.input
 
         start = time.perf_counter()
-        provider_result = await self.provider.embed(inputs=inputs, model=request.model)
+        provider_result = await self.provider.embed(self, inputs=inputs, model=request.model)
         latency_ms = (time.perf_counter() - start) * 1000.0
 
         usage: Optional[EmbeddingsUsage] = None
