@@ -50,7 +50,7 @@ class ChatUsage(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-def ChatResponse(BaseModel):
+class ChatResponse(BaseModel):
     text: str
     model: str
 
