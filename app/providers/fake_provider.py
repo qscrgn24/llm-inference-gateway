@@ -16,7 +16,7 @@ class FakeChatProvider(ChatProvider):
     - allows strict TDD flow before integrating a real vendor SDK
     """
 
-    async def generate(self, messages: List[ChatMessage], model: str, temperrature:float, max_output_tokens: int) -> dict:
+    async def generate(self, messages: List[ChatMessage], model: str, temperature:float, max_output_tokens: int) -> dict:
         last_user = next((m.content for m in reversed(messages) if m.role == "user"), "")
         text = f"echo: {last_user}" if last_user else "echo:"
 

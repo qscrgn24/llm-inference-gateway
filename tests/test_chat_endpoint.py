@@ -20,7 +20,7 @@ def test_chat_success():
 
     assert response.status_code == 200
 
-    data = response.json
+    data = response.json()
 
     assert "text" in data
     assert "model" in data
