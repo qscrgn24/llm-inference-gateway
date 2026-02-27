@@ -30,7 +30,7 @@ class ChatService:
 
         latency_ms = (time.perf_counter() - start) * 1000.0
 
-        usage: ChatUsage | None = None,
+        usage: ChatUsage | None = None
         raw_usage = provider_result.get("usage")
         if isinstance(raw_usage, dict):
             usage = ChatUsage(

@@ -3,16 +3,18 @@ from fastapi.responses import JSONResponse
 
 from app.api.routers.chat import router as chat_router
 from app.api.routers.embeddings import router as embedding_router
-from app.api.routers.test_heath import router as test_router
+from app.api.routers.heath import router as health_router
 from app.core.config import settings
 from app.core.errors import AppError
 from app.core.logging import setup_logging
 from app.core.middleware import RequestContextMiddleware
+from app.providers.base import ChatProvider
+from app.providers.embeddings_base import EmbeddingsProvider
 from app.providers.fake_embeddings_provider import FakeEmbeddingsProvider
 from app.providers.fake_provider import FakeChatProvider
 from app.providers.openai_embeddings_provider import OpenAIEmbeddingsProvider
 from app.providers.openai_provider import OpenAIChatProvider
-from app.services.chat_services import ChatService
+from app.services.chat_service import ChatService
 from app.services.embed_service import EmbeddingsService
 
 
@@ -26,6 +28,9 @@ def create_app() -> FastAPI:
 
     app.add_middleware(RequestContextMiddleware)
 
+    chat_provider: ChatProvider
+    embeddings_provider: EmbeddingsProvider
+
     if settings.openai_api_key:
         chat_provider = OpenAIChatProvider()
         embeddings_provider = OpenAIEmbeddingsProvider()
@@ -36,12 +41,12 @@ def create_app() -> FastAPI:
     app.state.chat_service = ChatService(provider=chat_provider)
     app.state.embeddings_service = EmbeddingsService(provider=embeddings_provider)
 
-    app.include_router(test_router, prefix="/v1")
+    app.include_router(health_router, prefix="/v1")
     app.include_router(chat_router, prefix="/v1")
     app.include_router(embedding_router, prefix="/v1")
 
     @app.exception_handler(AppError)
-    async def app_error_handler(request: Request, exc: AppError):
+    async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         return JSONResponse(
             status_code=exc.status_code,
             content={

@@ -38,11 +38,6 @@ class ChatRequest(BaseModel):
 
 
 class ChatUsage(BaseModel):
-    """
-    Usage is useful signal for AI-backend roles:
-    - shows you understand cost/accounting patterns
-    - maps well to OpenAI response usage fields
-    """
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None

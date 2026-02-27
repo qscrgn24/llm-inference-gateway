@@ -38,13 +38,13 @@ class OpenAIChatProvider(ChatProvider):
 
     async def generate(self, messages: list[ChatMessage], model: str, temperature: float, max_output_tokens: int) -> dict[str, Any]:
         # Convert Pydantic models -> OpenAI message dicts
-        oai_messages = [{"role": m.role, "content": m.content} for m in messages]
+        oai_messages: list[dict[str, Any]] = [{"role": m.role, "content": m.content} for m in messages]
 
         # Chat Completions API (supported long-term by OpenAI Python SDK)
         try:
             resp = await self.client.chat.completions.create(
                 model=model,
-                messages=oai_messages,
+                messages=oai_messages, # type: ignore[arg-type]
                 temperature=temperature,
                 max_tokens=max_output_tokens,
             )

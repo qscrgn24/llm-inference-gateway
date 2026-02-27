@@ -1,11 +1,12 @@
 import logging
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+from starlette.types import ASGIApp
 
 from app.core.logging import request_id_ctx
 
@@ -19,12 +20,12 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     - latency_ms: measured end-to-end at the middleware level
     - sets response headers: X-Request-ID, X-Response-Time-ms
     """
-    def __init__(self, app, request_id_header: str = "X-Request-ID", response_time_header: str = "X-Response-Time-ms"):
+    def __init__(self, app: ASGIApp, request_id_header: str = "X-Request-ID", response_time_header: str = "X-Response-Time-ms") -> None:
         super().__init__(app)
         self.request_id_header = request_id_header
         self.response_time_header = response_time_header
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         start = time.perf_counter()
 
         # 1) Request ID: accept upstream ID or generate a new one
