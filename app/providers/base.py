@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
 
 from app.schemas.chat import ChatMessage
 
@@ -18,7 +17,7 @@ class ChatProvider(ABC):
     """
 
     @abstractmethod
-    async def generate(self, messages: List[ChatMessage], model: str, temperature: float, max_output_tokens: int) -> dict:
+    async def generate(self, messages: list[ChatMessage], model: str, temperature: float, max_output_tokens: int) -> dict:
         """
         Should return a dict with at minimum:
         {

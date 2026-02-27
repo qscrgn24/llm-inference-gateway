@@ -1,5 +1,4 @@
 import time
-from typing import Optional, List
 
 from app.core.logging import request_id_ctx
 from app.providers.embeddings_base import EmbeddingsProvider
@@ -19,7 +18,7 @@ class EmbeddingsService:
         self.provider = provider
 
     async def embed(self, request: EmbeddingsRequest) -> EmbeddingsResponse:
-        inputs: List[str]
+        inputs: list[str]
         if isinstance(request.input, str):
             inputs = [request.input]
         else:
@@ -29,7 +28,7 @@ class EmbeddingsService:
         provider_result = await self.provider.embed(inputs=inputs, model=request.model)
         latency_ms = (time.perf_counter() - start) * 1000.0
 
-        usage: Optional[EmbeddingsUsage] = None
+        usage: EmbeddingsUsage | None = None
         raw_usage = provider_result.get("usage")
         if isinstance(raw_usage, dict):
             usage = EmbeddingsUsage(total_tokens=raw_usage.get("total_tokens"))

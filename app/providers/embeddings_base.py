@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List
 
 
 class EmbeddingsProvider(ABC):
@@ -14,7 +13,7 @@ class EmbeddingsProvider(ABC):
     """
 
     @abstractmethod
-    async def embed(self, inputs: List[str], model: str) -> dict:
+    async def embed(self, inputs: list[str], model: str) -> dict:
         """
         Must return dict like:
         {

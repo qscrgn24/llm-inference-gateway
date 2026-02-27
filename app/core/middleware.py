@@ -1,7 +1,7 @@
+import logging
 import time
 import uuid
-import logging
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -28,7 +28,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         start = time.perf_counter()
 
         # 1) Request ID: accept upstream ID or generate a new one
-        incoming_rid: Optional[str] = request.headers.get(self.request_id_header)
+        incoming_rid: str | None = request.headers.get(self.request_id_header)
         rid = incoming_rid.strip() if incoming_rid else str(uuid.uuid4())
 
         # Store request_id in context var for log enrichment

@@ -3,11 +3,11 @@ import logging
 import os
 import sys
 from contextvars import ContextVar
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 # Request-scoped context (set by middleware)
-request_id_ctx: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
+request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 
 
 class JsonFormatter(logging.Formatter):
@@ -21,8 +21,8 @@ class JsonFormatter(logging.Formatter):
     """
 
     def format(self, record: logging.LogRecord) -> str:
-        payload: Dict[str, Any] = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+        payload: dict[str, Any] = {
+            "ts": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "msg": record.getMessage(),

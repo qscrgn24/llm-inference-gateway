@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -18,7 +17,7 @@ class AppError(Exception):
     code: str
     message: str
     retryable: bool = False
-    details: Optional[dict] = None
+    details: dict | None = None
 
 
 class UpstreamTimeout(AppError):

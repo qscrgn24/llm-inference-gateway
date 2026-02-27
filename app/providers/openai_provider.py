@@ -1,11 +1,15 @@
 import logging
-from typing import List, Dict, Any
+from typing import Any
 
-from openai import AsyncOpenAI
-from openai import RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
+from openai import APIConnectionError, APIStatusError, APITimeoutError, AsyncOpenAI, RateLimitError
 
 from app.core.config import settings
-from app.core.errors import UpstreamTimeout, UpstreamRateLimited, UpstreamUnavailable, BadUpstreamResponse
+from app.core.errors import (
+    BadUpstreamResponse,
+    UpstreamRateLimited,
+    UpstreamTimeout,
+    UpstreamUnavailable,
+)
 from app.providers.base import ChatProvider
 from app.schemas.chat import ChatMessage
 
@@ -32,7 +36,7 @@ class OpenAIChatProvider(ChatProvider):
             max_retries=settings.openai_max_retries,
         )
 
-    async def generate(self, messages: List[ChatMessage], model: str, temperature: float, max_output_tokens: int) -> Dict[str, Any]:
+    async def generate(self, messages: list[ChatMessage], model: str, temperature: float, max_output_tokens: int) -> dict[str, Any]:
         # Convert Pydantic models -> OpenAI message dicts
         oai_messages = [{"role": m.role, "content": m.content} for m in messages]
 
@@ -44,25 +48,25 @@ class OpenAIChatProvider(ChatProvider):
                 temperature=temperature,
                 max_tokens=max_output_tokens,
             )
-        except APITimeoutError:
-            raise UpstreamTimeout()
-        except RateLimitError:
-            raise UpstreamRateLimited()
-        except APIConnectionError:
-            raise UpstreamUnavailable("Upstream provider connection error")
+        except APITimeoutError as e:
+            raise UpstreamTimeout() from e
+        except RateLimitError as e:
+            raise UpstreamRateLimited() from e
+        except APIConnectionError as e:
+            raise UpstreamUnavailable("Upstream provider connection error") from e
         except APIStatusError as e:
             status = getattr(e, "status_code", None)
             if status in (500, 502, 503, 504):
-                raise UpstreamUnavailable(f"Upstream provider error (status {status})")
-            raise BadUpstreamResponse(f"Upstream provider error (status {status})")
-        except Exception:
+                raise UpstreamUnavailable(f"Upstream provider error (status {status})") from e
+            raise BadUpstreamResponse(f"Upstream provider error (status {status})") from e
+        except Exception as e:
             logger.exception("Unexpected Error Calling OpenAI")
-            raise BadUpstreamResponse("Unexpected upstream error")
+            raise BadUpstreamResponse("Unexpected upstream error") from e
 
         try:
             text = resp.choices[0].message.content or ""
-        except Exception:
-            raise BadUpstreamResponse("Malformed upstream response: missing text")
+        except Exception as e:
+            raise BadUpstreamResponse("Malformed upstream response: missing text") from e
 
         usage = None
         if resp.usage:

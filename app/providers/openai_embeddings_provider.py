@@ -1,15 +1,14 @@
 import logging
-from typing import List, Dict, Any
+from typing import Any
 
-from openai import AsyncOpenAI
-from openai import RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
+from openai import APIConnectionError, APIStatusError, APITimeoutError, AsyncOpenAI, RateLimitError
 
 from app.core.config import settings
 from app.core.errors import (
-    UpstreamTimeout,
-    UpstreamRateLimited,
-    UpstreamUnavailable,
     BadUpstreamResponse,
+    UpstreamRateLimited,
+    UpstreamTimeout,
+    UpstreamUnavailable,
 )
 from app.providers.embeddings_base import EmbeddingsProvider
 
@@ -27,31 +26,31 @@ class OpenAIEmbeddingsProvider(EmbeddingsProvider):
             max_retries=settings.openai_max_retries,
         )
 
-    async def embed(self, inputs: List[str], model: str) -> Dict[str, Any]:
+    async def embed(self, inputs: list[str], model: str) -> dict[str, Any]:
         try:
             resp = await self.client.embeddings.create(
                 model=model,
                 input=inputs,
             )
-        except APITimeoutError:
-            raise UpstreamTimeout()
-        except RateLimitError:
-            raise UpstreamRateLimited()
-        except APIConnectionError:
-            raise UpstreamUnavailable("Upstream provider connection error")
+        except APITimeoutError as e:
+            raise UpstreamTimeout() from e
+        except RateLimitError as e:
+            raise UpstreamRateLimited() from e
+        except APIConnectionError as e:
+            raise UpstreamUnavailable("Upstream provider connection error") from e
         except APIStatusError as e:
             status = getattr(e, "status_code", None)
             if status in (500, 502, 503, 504):
-                raise UpstreamUnavailable(f"Upstream provider error (status {status})")
-            raise BadUpstreamResponse(f"Upstream provider error (status {status})")
-        except Exception:
+                raise UpstreamUnavailable(f"Upstream provider error (status {status})") from e
+            raise BadUpstreamResponse(f"Upstream provider error (status {status})") from e
+        except Exception as e:
             logger.exception("Unexpected error calling OpenAI embeddings")
-            raise BadUpstreamResponse("Unexpected upstream error")
+            raise BadUpstreamResponse("Unexpected upstream error") from e
 
         try:
             vectors = [d.embedding for d in resp.data]
-        except Exception:
-            raise BadUpstreamResponse("Malformed upstream response: missing embeddings")
+        except Exception as e:
+            raise BadUpstreamResponse("Malformed upstream response: missing embeddings") from e
 
         usage = None
         if resp.usage:

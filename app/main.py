@@ -1,22 +1,20 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api.routers.test_heath import router as test_router
 from app.api.routers.chat import router as chat_router
 from app.api.routers.embeddings import router as embedding_router
-
-from app.core.logging import setup_logging
-from app.core.middleware  import RequestContextMiddleware
-from app.core.errors import AppError
+from app.api.routers.test_heath import router as test_router
 from app.core.config import settings
-
-from app.providers.fake_provider import FakeChatProvider
+from app.core.errors import AppError
+from app.core.logging import setup_logging
+from app.core.middleware import RequestContextMiddleware
 from app.providers.fake_embeddings_provider import FakeEmbeddingsProvider
-from app.providers.openai_provider import OpenAIChatProvider
+from app.providers.fake_provider import FakeChatProvider
 from app.providers.openai_embeddings_provider import OpenAIEmbeddingsProvider
-
+from app.providers.openai_provider import OpenAIChatProvider
 from app.services.chat_services import ChatService
 from app.services.embed_service import EmbeddingsService
+
 
 def create_app() -> FastAPI:
     setup_logging()

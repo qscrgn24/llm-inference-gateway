@@ -1,5 +1,4 @@
 import time
-from typing import Optional
 
 from app.core.logging import request_id_ctx
 from app.providers.base import ChatProvider
@@ -31,7 +30,7 @@ class ChatService:
 
         latency_ms = (time.perf_counter() - start) * 1000.0
 
-        usage: Optional[ChatUsage] = None,
+        usage: ChatUsage | None = None,
         raw_usage = provider_result.get("usage")
         if isinstance(raw_usage, dict):
             usage = ChatUsage(
