@@ -2,8 +2,10 @@ import logging
 from typing import List, Dict, Any
 
 from openai import AsyncOpenAI
+from openai import RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
 
 from app.core.config import settings
+from app.core.errors import UpstreamTimeout, UpstreamRateLimited, UpstreamUnavailable, BadUpstreamResponse
 from app.providers.base import ChatProvider
 from app.schemas.chat import ChatMessage
 
@@ -35,14 +37,32 @@ class OpenAIChatProvider(ChatProvider):
         oai_messages = [{"role": m.role, "content": m.content} for m in messages]
 
         # Chat Completions API (supported long-term by OpenAI Python SDK)
-        resp = await self.client.chat.completions.create(
-            model=model,
-            messages=oai_messages,
-            temperature=temperature,
-            max_tokens=max_output_tokens,
-        )
+        try:
+            resp = await self.client.chat.completions.create(
+                model=model,
+                messages=oai_messages,
+                temperature=temperature,
+                max_tokens=max_output_tokens,
+            )
+        except APITimeoutError:
+            raise UpstreamTimeout()
+        except RateLimitError:
+            raise UpstreamRateLimited()
+        except APIConnectionError:
+            raise UpstreamUnavailable("Upstream provider connection error")
+        except APIStatusError as e:
+            status = getattr(e, "status_code", None)
+            if status in (500, 502, 503, 504):
+                raise UpstreamUnavailable(f"Upstream provider error (status {status})")
+            raise BadUpstreamResponse(f"Upstream provider error (status {status})")
+        except Exception:
+            logger.exception("Unexpected Error Calling OpenAI")
+            raise BadUpstreamResponse("Unexpected upstream error")
 
-        text = resp.choices[0].message.content or ""
+        try:
+            text = resp.choices[0].message.content or ""
+        except Exception:
+            raise BadUpstreamResponse("Malformed upstream response: missing text")
 
         usage = None
         if resp.usage:
